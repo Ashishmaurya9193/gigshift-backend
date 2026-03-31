@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test</title>
+    <meta charset="UTF-8">
+    <style>
+        /* Base reset */
+        * {
+            box-sizing: border-box;
+        }
+
+        /* Page */
+        body {
+
+
+            font-family: "Inter", Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+            color: #1f2937;
+        }
+
+        /* Section card */
+        section {
+            background: #ffffff;
+            margin-bottom: 32px;
+            padding: 24px 28px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            animation: fadeUp 0.6s ease both;
+        }
+
+        /* Labels */
+        label {
+            display: block;
+            margin: 12px 0 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        /* Inputs */
+        input {
+            width: 100%;
+            max-width: 320px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 0.95rem;
+            transition: all 0.25s ease;
+        }
+
+        /* Input focus animation */
+        input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+            transform: translateY(-1px);
+        }
+
+        /* Button */
+        button {
+            margin-top: 14px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #ffffff;
+            transition: all 0.25s ease;
+        }
+
+        /* Button hover */
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.35);
+        }
+
+        /* Button press */
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        /* Preformatted block */
+        pre:empty {
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<section>
+    <h2>Register</h2>
+    <label for="regName">Name</label>
+    <input id="regName" placeholder="Name">
+    <label for="regEmail">Email</label>
+    <input id="regEmail" placeholder="Email">
+    <label for="regPassword">Password</label>
+    <input id="regPassword" type="password" placeholder="password">
+    <div class="actions">
+        <button onclick="register()">Register</button>
+    </div>
+</section>
+
+<section>
+    <h2>Login</h2>
+    <label for="loginEmail">Email</label>
+    <input id="loginEmail" placeholder="Email">
+    <label for="loginPassword">Password</label>
+    <input id="loginPassword" type="password" placeholder="password">
+    <div class="actions">
+        <button onclick="login()">Login</button>
+    </div>
+</section>
+
+<section>
+    <h2>Forgot Password</h2>
+    <label for="forgotEmail">Email</label>
+    <input id="forgotEmail" placeholder="Email">
+    <div class="actions">
+        <button onclick="forgotPassword()">Send Reset Link</button>
+    </div>
+</section>
+
+<section>
+    <h2>Reset Password</h2>
+    <label for="resetToken">Reset Token</label>
+    <input id="resetToken" placeholder="Paste token">
+    <label for="resetPassword">New Password</label>
+    <input id="resetPassword" type="password" placeholder="new password">
+    <div class="actions">
+        <button onclick="resetPassword()">Reset Password</button>
+    </div>
+</section>
+
+<section>
+    <h2>Register/Login with Google</h2>
+    <button type="button" onclick="openGoogleLogin()">Continue with Google</button>
+    <!-- <div>
+        <a href="/oauth2/authorization/google" target="_blank" rel="noopener noreferrer">Continue with Google (link)</a>
+    </div> -->
+</section>
+
+<section>
+    <h2>Session check</h2>
+    <button onclick="getProfile()">Get My Profile</button>
+    <pre id="output"></pre>
+</section>
+
+<script>
+    let sessionCookieInfo = "";
+
+    async function register() {
+        const body = {
+            name: document.getElementById('regName').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value
+        };
+        const res = await fetch('/auth/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        sessionCookieInfo = res.headers.get('set-cookie') || '';
+        document.getElementById('output').textContent = await res.text();
+    }
+
+    async function login() {
+        const body = {
+            email: document.getElementById('loginEmail').value,
+            password: document.getElementById('loginPassword').value
+        };
+        const res = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        sessionCookieInfo = res.headers.get('set-cookie') || '';
+        document.getElementById('output').textContent = await res.text();
+    }
+
+    async function forgotPassword() {
+        const body = {
+            email: document.getElementById('forgotEmail').value
+        };
+        const res = await fetch('/auth/forgot-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        document.getElementById('output').textContent = await res.text();
+    }
+
+    async function resetPassword() {
+        const body = {
+            token: document.getElementById('resetToken').value,
+            newPassword: document.getElementById('resetPassword').value
+        };
+        const res = await fetch('/auth/reset-password', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        });
+        document.getElementById('output').textContent = await res.text();
+    }
+
+    async function getProfile() {
+        const res = await fetch('/users', {
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        document.getElementById('output').textContent = await res.text();
+    }
+
+    function openGoogleLogin() {
+        window.open('/oauth2/authorization/google', '_blank', 'noopener');
+    }
+</script>
+</body>
+</html>
